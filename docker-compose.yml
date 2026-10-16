@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: personal_ai
+      POSTGRES_PASSWORD: personal_ai
+      POSTGRES_DB: personal_ai
+    volumes:
+      - personal_ai_pg:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - personal_ai_redis:/data
+
+volumes:
+  personal_ai_pg:
+  personal_ai_redis:
