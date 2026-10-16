@@ -6,6 +6,10 @@ export default defineConfig({
   // added by `nest g library`.
   plugins: [tsconfigPaths()],
   test: {
+    env: {
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-only-jwt-secret-with-32-characters',
+    },
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
