@@ -75,14 +75,41 @@ describe('Auth (e2e)', () => {
       .expect(201);
 
     expect(registered.body).toEqual({
-      user: { id: expect.any(String), email, name: 'Ada Lovelace' },
+      user: { id: expect.any(String), email, name: 'Ada Lovelace', timezone: 'UTC' },
     });
     const cookies = registered.headers['set-cookie'];
     const joined = Array.isArray(cookies) ? cookies.join(';') : String(cookies ?? '');
     expect(joined).toMatch(/HttpOnly/i);
 
     const me = await agent.get('/api/v1/auth/me').expect(200);
-    expect(me.body).toEqual({ id: registered.body.user.id, email, name: 'Ada Lovelace' });
+    expect(me.body).toEqual({
+      id: registered.body.user.id,
+      email,
+      name: 'Ada Lovelace',
+      timezone: 'UTC',
+    });
+
+    await agent
+      .patch('/api/v1/auth/me')
+      .set('X-Personal-AI', '1')
+      .send({ timezone: 'UTC+5' })
+      .expect(400);
+    await agent
+      .patch('/api/v1/auth/me')
+      .set('X-Personal-AI', '1')
+      .send({ timezone: 'Not/AZone', name: 'Changed' })
+      .expect(400);
+    const patched = await agent
+      .patch('/api/v1/auth/me')
+      .set('X-Personal-AI', '1')
+      .send({ timezone: 'Asia/Karachi', name: 'Changed' })
+      .expect(200);
+    expect(patched.body).toEqual({
+      id: registered.body.user.id,
+      email,
+      name: 'Ada Lovelace',
+      timezone: 'Asia/Karachi',
+    });
 
     await agent.post('/api/v1/auth/refresh').set('X-Personal-AI', '1').expect(200);
     await agent.get('/api/v1/auth/me').expect(200);

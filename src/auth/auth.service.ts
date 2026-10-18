@@ -17,7 +17,15 @@ export type PublicUser = {
   id: string;
   email: string;
   name: string | null;
+  timezone: string;
 };
+
+const publicUserSelect = {
+  id: true,
+  email: true,
+  name: true,
+  timezone: true,
+} as const;
 
 export type IssuedSession = {
   user: PublicUser;
@@ -109,7 +117,7 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { email },
-      select: { id: true, email: true, name: true },
+      select: publicUserSelect,
     });
     if (user) {
       return { status: 'authenticated', session: await this.issueSession(user) };
@@ -142,7 +150,7 @@ export class AuthService {
         }
         return tx.user.create({
           data: { email, name },
-          select: { id: true, email: true, name: true },
+          select: publicUserSelect,
         });
       });
       return this.issueSession(user);
@@ -157,7 +165,7 @@ export class AuthService {
   async refresh(refreshToken: string): Promise<IssuedSession> {
     const session = await this.prisma.session.findUnique({
       where: { tokenHash: this.tokens.hashRefreshToken(refreshToken) },
-      include: { user: { select: { id: true, email: true, name: true } } },
+      include: { user: { select: publicUserSelect } },
     });
     if (!session) {
       throw new UnauthorizedException('Sign in again.');
@@ -213,10 +221,18 @@ export class AuthService {
     return { id: claims.sub, sessionId: claims.sid };
   }
 
+  async updateTimezone(userId: string, timeZone: string): Promise<PublicUser> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { timezone: timeZone },
+      select: publicUserSelect,
+    });
+  }
+
   async currentUser(userId: string): Promise<PublicUser> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true },
+      select: publicUserSelect,
     });
     if (!user) {
       throw new UnauthorizedException('Sign in again.');

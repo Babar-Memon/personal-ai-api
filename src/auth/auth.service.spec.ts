@@ -39,7 +39,7 @@ const delivery = {
 
 describe('AuthService', () => {
   const prisma = {
-    user: { create: vi.fn(), findUnique: vi.fn() },
+    user: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     otpChallenge: {
       findFirst: vi.fn(),
       create: vi.fn(),
@@ -242,6 +242,41 @@ describe('AuthService', () => {
     expect(prisma.session.updateMany).toHaveBeenCalledWith({
       where: { userId: 'user-1', revokedAt: null },
       data: { revokedAt: expect.any(Date) },
+    });
+  });
+
+  it('returns the stored time zone with the current user', async () => {
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      email: 'person@example.com',
+      name: 'Ada',
+      timezone: 'Asia/Karachi',
+    });
+
+    await expect(service.currentUser('user-1')).resolves.toEqual({
+      id: 'user-1',
+      email: 'person@example.com',
+      name: 'Ada',
+      timezone: 'Asia/Karachi',
+    });
+  });
+
+  it('updates only the time zone', async () => {
+    prisma.user.update.mockResolvedValue({
+      id: 'user-1',
+      email: 'person@example.com',
+      name: 'Ada',
+      timezone: 'Asia/Karachi',
+    });
+
+    await expect(service.updateTimezone('user-1', 'Asia/Karachi')).resolves.toMatchObject({
+      timezone: 'Asia/Karachi',
+      name: 'Ada',
+    });
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { timezone: 'Asia/Karachi' },
+      select: { id: true, email: true, name: true, timezone: true },
     });
   });
 });

@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { isValidTimeZone } from '../time.js';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -49,6 +50,17 @@ export function parseRegistration(body: unknown): {
     throw new BadRequestException('Enter a name between 1 and 80 characters.');
   }
   return { registrationToken, name: trimmed };
+}
+
+export function parseTimezone(body: unknown): string {
+  if (!body || typeof body !== 'object') {
+    throw new BadRequestException('Choose a valid time zone.');
+  }
+  const timezone = (body as Record<string, unknown>).timezone;
+  if (typeof timezone !== 'string' || !isValidTimeZone(timezone)) {
+    throw new BadRequestException('Choose a valid time zone.');
+  }
+  return timezone;
 }
 
 export function parseRefreshToken(body: unknown): string | undefined {

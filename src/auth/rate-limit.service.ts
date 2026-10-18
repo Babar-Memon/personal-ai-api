@@ -33,9 +33,10 @@ export class RateLimitService implements OnModuleDestroy {
   }
 
   async consume(
-    action: 'request-otp' | 'verify-otp' | 'complete-registration',
+    action: 'request-otp' | 'verify-otp' | 'complete-registration' | 'assistant',
     ip: string,
     email: string,
+    max = MAX_ATTEMPTS,
   ) {
     try {
       if (
@@ -53,7 +54,7 @@ export class RateLimitService implements OnModuleDestroy {
         if (count === 1) {
           await this.redis.expire(key, WINDOW_SECONDS);
         }
-        if (count > MAX_ATTEMPTS) {
+        if (count > max) {
           throw new HttpException(
             'Too many attempts. Try again later.',
             HttpStatus.TOO_MANY_REQUESTS,

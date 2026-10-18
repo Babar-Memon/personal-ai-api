@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
-import { parseEmail, parseOtp, parseRefreshToken, parseRegistration } from './validation.js';
+import { parseEmail, parseOtp, parseRefreshToken, parseRegistration, parseTimezone } from './validation.js';
 
 describe('parseEmail', () => {
   it('trims and lowercases the address', () => {
@@ -38,6 +38,18 @@ describe('parseRegistration', () => {
       registrationToken: 'registration-token-value-long',
       name: 'Ada Lovelace',
     });
+  });
+});
+
+describe('parseTimezone', () => {
+  it('accepts an IANA name', () => {
+    expect(parseTimezone({ timezone: 'Asia/Karachi' })).toBe('Asia/Karachi');
+  });
+
+  it('rejects a missing or unknown time zone', () => {
+    expect(() => parseTimezone({})).toThrow(BadRequestException);
+    expect(() => parseTimezone({ timezone: 'UTC+5' })).toThrow(BadRequestException);
+    expect(() => parseTimezone({ timezone: 'Not/AZone' })).toThrow(BadRequestException);
   });
 });
 

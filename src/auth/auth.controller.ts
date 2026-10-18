@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Get,
   HttpCode,
+  Patch,
   Post,
   Req,
   Res,
@@ -26,6 +27,7 @@ import {
   parseOtp,
   parseRefreshToken,
   parseRegistration,
+  parseTimezone,
 } from './validation.js';
 
 type AuthedRequest = Request & { user: { id: string; sessionId: string } };
@@ -112,6 +114,12 @@ export class AuthController {
   @UseGuards(AuthGuard)
   me(@Req() request: AuthedRequest) {
     return this.auth.currentUser(request.user.id);
+  }
+
+  @Patch('me')
+  @UseGuards(AuthGuard)
+  updateMe(@Req() request: AuthedRequest, @Body() body: unknown) {
+    return this.auth.updateTimezone(request.user.id, parseTimezone(body));
   }
 
   private presentVerification(

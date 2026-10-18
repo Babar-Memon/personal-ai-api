@@ -11,5 +11,6 @@ import { TokenService } from './token.service.js';
   imports: [PrismaModule],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard, TokenService, RateLimitService, OtpDeliveryService],
+  exports: [AuthService, RateLimitService],
 })
 export class AuthModule {}
